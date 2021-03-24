@@ -27,21 +27,9 @@ def get_titles_from_search_results(filename):
         author = row.find("a", class_="authorName")
         authorName = author.find("span", itemprop="name")
         
-        titles.append((bookTitle.text, authorName.text))
+        titles.append((bookTitle.text.strip(), authorName.text.strip()))
     
     return titles
-    # title = soup.find_all("tr", itemtype="http://schema.org/Book")
-    # author = soup.find_all('a', class_ = "authorName")
-    # d = {}
-    # for x in title:
-    #     title1 = x.find('a')
-    #     title2 = title1.find('title')
-    #     author1 = author.text
-    #     if title2 != None:
-    #         d[title2] = author1
-    # results = sorted(d.items())
-    # print(results)
-    # return results
 
 
 def get_search_links():
@@ -60,12 +48,13 @@ def get_search_links():
     url = "https://www.goodreads.com/search?q=fantasy&qid=NwUsLiA2Nc"
     r = requests.get(url)
     soup = BeautifulSoup(r.text, 'html.parser')
-    anchor = soup.find_all('tr', itemtype= 'http://schema.org/Book')
-    anchor1 = 
+    rows = soup.find_all('tr', itemtype= 'http://schema.org/Book')
     list = []
-
-
-
+    for row in rows: 
+        book = row.find('a', class_ = "bookTitle")
+        link = book.get('href', None)
+        list.append('https://www.goodreads.com' + link)
+    return list[0:10]
 
 
 def get_book_summary(book_url):
@@ -81,8 +70,20 @@ def get_book_summary(book_url):
     You can easily capture CSS selectors with your browser's inspector window.
     Make sure to strip() any newlines from the book title and number of pages.
     """
+    r = requests.get(book_url)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    book = soup.find('h1', id = "bookTitle")
 
-    pass
+    author = soup.find("a", class_="authorName")
+    authorName = author.find("span", itemprop="name")
+
+    pages = soup.find('span', itemprop = 'numberOfPages')
+    
+    
+    return (book.text.strip(), authorName.text.strip(), pages.text.strip())
+
+    
+
 
 
 def summarize_best_books(filepath):
@@ -155,31 +156,37 @@ class TestCases(unittest.TestCase):
 
     def test_get_search_links(self):
         # check that TestCases.search_urls is a list
-
+        self.assertEqual(type(TestCases.search_urls), list)
         # check that the length of TestCases.search_urls is correct (10 URLs)
-
+        self.assertEqual(len(TestCases.search_urls), 10)
 
         # check that each URL in the TestCases.search_urls is a string
+        for x in TestCases.search_urls:
+            self.assertEqual(type(x), str)
         # check that each URL contains the correct url for Goodreads.com followed by /book/show/
-        pass
+            self.assertTrue('https://www.goodreads.com/book/show' in x)
 
 
     def test_get_book_summary(self):
         # create a local variable – summaries – a list containing the results from get_book_summary()
+        summaries = []
         # for each URL in TestCases.search_urls (should be a list of tuples)
-
+        for x in TestCases.search_urls:
+            summaries.append(get_book_summary(x))
         # check that the number of book summaries is correct (10)
-
+        self.assertEqual(len(summaries), 10)
             # check that each item in the list is a tuple
-
+        for x in summaries:
+            self.assertEqual(type(x), tuple)
             # check that each tuple has 3 elements
-
+            self.assertEqual(len(x), 3)
             # check that the first two elements in the tuple are string
-
+            self.assertEqual(type(x[0]), str)
+            self.assertEqual(type(x[1]), str)
             # check that the third element in the tuple, i.e. pages is an int
-
+            self.assertEqual(type(x[2]), int)
             # check that the first book in the search has 337 pages
-        pass
+            self.assertEqual(x[2], 337)
 
 
     def test_summarize_best_books(self):
