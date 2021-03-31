@@ -80,9 +80,7 @@ def get_book_summary(book_url):
     pages = soup.find('span', itemprop = 'numberOfPages')
     
     
-    return (book.text.strip(), authorName.text.strip(), pages.text.strip())
-
-    
+    return (book.text.strip(), authorName.text.strip(), int(pages.text.strip().split(" ")[0]))
 
 
 
@@ -97,7 +95,20 @@ def summarize_best_books(filepath):
     ("Fiction", "The Testaments (The Handmaid's Tale, #2)", "https://www.goodreads.com/choiceawards/best-fiction-books-2020") 
     to your list of tuples.
     """
-    pass
+    f = open(filepath, 'r', encoding = 'utf-8')
+    soup = BeautifulSoup(f.text, 'html.parser')
+    f.close()
+    anchor = soup.find_all('div', class_="category clearFix")
+    list = []
+    for x in anchor:
+        category = x.find(class_='category__copy').text.strip()
+        book = x.find('img', class_='category__winnerImage').get('alt', None)
+        url = x.find('a').get('href', None)
+
+        list.append(category, book, url)
+    return list
+
+
 
 
 def write_csv(data, filename):
@@ -120,7 +131,16 @@ def write_csv(data, filename):
 
     This function should not return anything.
     """
-    pass
+    with open(filename, mode= 'w') as csvfile:
+        dataWriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        dataWriter.writerow("Book title", "Author Name")
+
+        for line in data:
+            dataWriter.writerow([line[0], line[1]])
+    
+        csv.close()
+
+
 
 
 def extra_credit(filepath):
@@ -185,15 +205,15 @@ class TestCases(unittest.TestCase):
             self.assertEqual(type(x[1]), str)
             # check that the third element in the tuple, i.e. pages is an int
             self.assertEqual(type(x[2]), int)
-            # check that the first book in the search has 337 pages
-            self.assertEqual(x[2], 337)
+        # check that the first book in the search has 337 pages
+        self.assertEqual(summaries[0][2], 337)
 
 
     def test_summarize_best_books(self):
         # call summarize_best_books and save it to a variable
-
+        summary = summarize_best_books()
         # check that we have the right number of best books (20)
-
+        for 
             # assert each item in the list of best books is a tuple
 
             # check that each tuple has a length of 3
