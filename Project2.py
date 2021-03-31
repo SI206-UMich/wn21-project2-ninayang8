@@ -1,5 +1,5 @@
 # Author: Nina Yang
-
+# Collaborators: Ashley Anderson, Anthony Ho
 from bs4 import BeautifulSoup
 import requests
 import re
